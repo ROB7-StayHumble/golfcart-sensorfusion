@@ -5,13 +5,20 @@ import cv2
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 import numpy as np
-
-def match_images(img1,img2):
-	pass
+import matplotlib.pyplot as plt
 
 bridge = CvBridge()
 
 bag = rosbag.Bag('2019-10-16-17-23-57.bag')
+
+angles = np.arange(0,361)
+plt.ion()
+fig = plt.figure()
+ax=fig.add_subplot(111)
+ax.set_xlim([0,360])
+ax.set_ylim([0,10])
+line,  = ax.plot(angles,np.zeros_like(angles))
+fig.show()
 
 for topic, msg, t in bag.read_messages():	
 	if topic in [	'/ircam_data',
@@ -24,13 +31,17 @@ for topic, msg, t in bag.read_messages():
 		elif topic == '/zed_node/rgb/image_rect_color':
 			zed = image
 			#cv2.imshow('zed',zed)
-			match_images(zed,ircam_last)
 			#cv2.imwrite('./zedcam'+str(t)+'.png',zed)
 		key = cv2.waitKey(0) & 0xFF
 		if key == ord("s"):
 			cv2.imwrite('./ircam'+str(t)+'.png',ircam_last)
 		elif key == ord("q"):
 			break
+	elif topic == '/bottom_scan':
+		scan_data = msg
+		print t,topic
+		line.set_data(angles,scan_data.ranges)
+		fig.canvas.draw()
 
 bag.close()
 cv2.destroyAllWindows()
