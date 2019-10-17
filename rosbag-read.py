@@ -11,13 +11,15 @@ bridge = CvBridge()
 
 bag = rosbag.Bag('2019-10-16-17-23-57.bag')
 
-angles = np.arange(0,361)
+angles = np.arange(-90,90.5,0.5)
+print(len(angles))
 plt.ion()
 fig = plt.figure()
 ax=fig.add_subplot(111)
-ax.set_xlim([0,360])
+ax.set_xlim([-90,90])
 ax.set_ylim([0,10])
 line,  = ax.plot(angles,np.zeros_like(angles))
+ax.invert_xaxis()
 fig.show()
 
 for topic, msg, t in bag.read_messages():	
