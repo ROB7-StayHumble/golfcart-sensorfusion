@@ -76,6 +76,7 @@ title('Matched points');
 
 subplot(2,2,4);
 outputView = imref2d(size(original));
-Ir = imwarp(distorted,affine2d(out.tform_sim),'OutputView',outputView);
-imshow(Ir); 
+Ir_affine = imwarp(distorted,affine2d(out.tform_affine),'OutputView',outputView);
+Ir_project = imwarp(distorted,projective2d(out.tform_project),'OutputView',outputView);
+imshow(Ir_affine); 
 title('Recovered image');
