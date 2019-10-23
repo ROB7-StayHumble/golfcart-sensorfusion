@@ -15,26 +15,16 @@ zedcam_features = np.float32([[810.7,115.3],[819.7,145.3],[797.2,178.3],[917.2,2
                     
 ircam_features = np.float32([[550.2,93.45],[569.1,124.6],[541.3,159.1],[661.5,268.2],[198.5,274.9],[210.7,155.8],[204,72.3],[200.7,110.1],[192.9,319.4],[219.6,473.4],[209.6,345],[202.9,348.4],[62.65,509.8],[41.5,492],[628.1,461.9],[542.4,380.6],[694.5,590.8],[544.5,511.3],[529.5,440.8],[630,271.2],[661.5,394.3],[618,401.8],[594,373.3],[591,364.3],[243,466.3],[374.2,76.25],[374.2,137.8],[372.8,157.2],[375.8,413.8]])
 
-box_corners = np.float32([[[520,265],[520+205,265],[520+205,265+330],[520,265+330]]])
-pts = np.int32(box_corners[0].reshape(-1,1,2))
-cv2.polylines(img_ircam,[pts],True,(0,0,255))
-cv2.imshow("box1",img_ircam)
-
 tform, mask = cv2.findHomography(ircam_features, zedcam_features)
+print(tform)
 
 warped = cv2.warpPerspective(img_ircam, tform, (w,h))
-box_warped = cv2.perspectiveTransform(box_corners, tform)
-
-print(box_warped)
-pts = np.int32(box_warped[0]).reshape((-1,1,2))
-cv2.polylines(img_zed,[pts],True,(0,255,255))
-cv2.imshow("box2",img_zed)
 
 for i in zedcam_corners:
 	i = np.uint32(i)
 	warped[i[1],i[0]] = [0,0,255]
 
+cv2.imshow("dst", warped)
 
-#cv2.imshow("dst", warped)
 key = cv2.waitKey(0) & 0xFF
 if key == ord("q"): cv2.destroyAllWindows()
