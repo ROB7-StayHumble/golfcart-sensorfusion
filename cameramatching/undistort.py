@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import numpy as np
 import cv2
 
@@ -16,7 +18,7 @@ cv2.setTrackbarPos('p1','undistort',500)
 cv2.setTrackbarPos('p2','undistort',500)
 cv2.setTrackbarPos('k3','undistort',500)
 
-src    = cv2.imread("ircam_distortion.png")
+src    = cv2.imread("ircam.png")
 width  = src.shape[1]
 height = src.shape[0]
 

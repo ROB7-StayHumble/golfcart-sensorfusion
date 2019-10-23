@@ -2,7 +2,8 @@ close all;
 orig  = rgb2gray(imread('zedcam.png'));
 I = rgb2gray(imread('ircam.png'));
 
-bboxA = [   520 265 205 330
+bboxA = [   
+            520 265 205 330
             205 140 340 300
         ];
 
