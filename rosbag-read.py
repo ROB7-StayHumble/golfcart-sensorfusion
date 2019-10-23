@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 bridge = CvBridge()
 
-bag = rosbag.Bag('2019-10-16-17-23-57.bag')
+bag = rosbag.Bag('testing2.bag')
 
 angles = np.arange(-90,90.5,0.5)
 print(len(angles))
@@ -37,6 +37,8 @@ for topic, msg, t in bag.read_messages():
 		key = cv2.waitKey(0) & 0xFF
 		if key == ord("s"):
 			cv2.imwrite('./ircam'+str(t)+'.png',ircam_last)
+			try: cv2.imwrite('./zedcam'+str(t)+'.png',zed)
+			except: pass
 		elif key == ord("q"):
 			break
 	elif topic == '/bottom_scan':
