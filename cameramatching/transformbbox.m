@@ -1,6 +1,8 @@
 close all;
-orig  = rgb2gray(imread('zedcam.png'));
-I = rgb2gray(imread('ircam.png'));
+folder = 'lab';
+
+orig  = rgb2gray(imread(strcat('zedcam',folder,'.png')));
+I = rgb2gray(imread(strcat('ircam',folder,'.png')));
 
 bboxA = [   
             520 265 205 330

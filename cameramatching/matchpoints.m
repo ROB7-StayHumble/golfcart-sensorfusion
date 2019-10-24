@@ -1,7 +1,9 @@
 close all
 
-original  = rgb2gray(imread('zedcam.png'));
-distorted = rgb2gray(imread('ircam.png'));
+folder = 'lab';
+
+original  = rgb2gray(imread(strcat('zedcam',folder,'.png')));
+distorted = rgb2gray(imread(strcat('ircam',folder,'.png')));
 
 subplot(2,2,1);
 imshow(original);
@@ -9,7 +11,7 @@ imshow(original);
 subplot(2,2,2);
 imshow(distorted);
 
-points;
+run(strcat('points/',folder,'/points'));
 
 subplot(2,2,3);
 showMatchedFeatures(original,distorted,...
