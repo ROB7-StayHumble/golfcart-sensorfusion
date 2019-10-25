@@ -2,4 +2,4 @@
 
 from sensorfusion.detection_hog.hogdetector import *
 
-detect_hog()
+run_hog_on_folder()

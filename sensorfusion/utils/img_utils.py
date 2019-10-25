@@ -1,6 +1,19 @@
 #!/usr/bin/env python3
 
 import cv2
+import numpy as np
+
+def plot_boxes(img, boxes):
+	for (xA, yA, xB, yB) in boxes:	
+		cv2.rectangle(img, (xA, yA), (xB, yB), (0, 255, 0), 2)
+	return img
+
+def plot_polygons(img, polygons):
+	for polygon in polygons:
+		print(polygon)
+		pts = np.int32(polygon).reshape((-1,1,2))
+		cv2.polylines(img,[pts],True,(0,255,255),5)
+	return img
 
 def downsample_image(img, desired_width):
 	h,w = img.shape[:2]

@@ -6,7 +6,7 @@ import cv2
 import imageio
 import os
 
-from ..utils.img_utils import downsample_image
+from ..utils.img_utils import downsample_image, plot_boxes
 
 # initialize the HOG descriptor/person detector
 input_image_path = 'sensorfusion/cam_data'
@@ -20,7 +20,13 @@ PADDING = None
 hog = cv2.HOGDescriptor()
 hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
 
-def detect_hog():
+def run_hog_on_img(img):
+	boxes, weights = hog.detectMultiScale(img, winStride=WIN_STRIDE)
+	boxes = np.array([[x, y, x + w, y + h] for (x, y, w, h) in boxes])
+
+	return boxes
+
+def run_hog_on_folder():
 	#cv2.startWindowThread()
 	#cv2.namedWindow('img',cv2.WINDOW_NORMAL)
 
@@ -30,18 +36,12 @@ def detect_hog():
 			#print('Reading', file)  
 			original_image = imageio.imread(os.path.join(input_image_path, file))	# Reading image
 			if original_image is not None:
-
-				gray = cv2.cvtColor(original_image, cv2.COLOR_RGB2GRAY)
-
-				boxes, weights = hog.detectMultiScale(original_image, winStride=WIN_STRIDE)
-				boxes = np.array([[x, y, x + w, y + h] for (x, y, w, h) in boxes])
-				for (xA, yA, xB, yB) in boxes:	
-						cv2.rectangle(original_image, (xA, yA), (xB, yB),
-				    		      (0, 255, 0), 2)
+				boxes = run_hog_on_img(original_image)
+				img = plot_boxes(img, boxes)
 				#output_image = detect_object(original_image)	# detecting objects
 			name = file.split('1',1)[1].split('.')[0] + file.split('1',1)[0] + '.png'
 			print(name)
-			imageio.imwrite(os.path.join(output_image_path, name), original_image[:, :, :])
+			imageio.imwrite(os.path.join(output_image_path, name), img[:, :, :])
 			
 			num_box = len(boxes)
 			print(num_box)	
