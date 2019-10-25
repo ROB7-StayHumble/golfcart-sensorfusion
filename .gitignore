@@ -136,3 +136,9 @@ codegen/
 
 # Octave session info
 octave-workspace
+
+sensorfusion/cam_data/
+
+sensorfusion/detection_hog/output/
+
+sensorfusion/detection_hog/input/
