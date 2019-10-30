@@ -18,6 +18,7 @@ boxes = points_dict['boxes']
 
 def get_boxes_zedframe(boxes,tform=tf):
 	n = 0
+	boxes_tformed = []
 	for (xA, yA, xB, yB) in boxes:
 		
 		w = xB - xA
