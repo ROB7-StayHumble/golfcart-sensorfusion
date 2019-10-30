@@ -13,7 +13,7 @@ from cv_bridge import CvBridge, CvBridgeError
 import numpy as np
 
 from sensorfusion.detection_hog.hogdetector import *
-from sensorfusion.utils.img_utils import plot_boxes, plot_polygons
+from sensorfusion.utils.img_utils import *
 from sensorfusion.cameramatching.transformbox import get_boxes_zedframe
 
 bridge = CvBridge()
@@ -35,7 +35,7 @@ curve_lidar = p_lidar.plot()                        # create an empty "plot" (a 
 p_lidar.showGrid(x=True,y=True)
 
 curve_lidar.getViewBox().invertX(True)
-curve_lidar.getViewBox().setLimits(yMin=0,yMax=60)
+curve_lidar.getViewBox().setLimits(yMin=0,yMax=80)
 curve_lidar.getViewBox().setAspectLocked(True)
 #p_lidar.setYRange(0, 50, padding=0)
 
@@ -56,6 +56,11 @@ curve_zed.getViewBox().setAspectLocked(True)
 p_zed.hideAxis('left')
 p_zed.hideAxis('bottom')
 p_zed.addItem(imgItem_zed)
+
+#cross hair
+vLine = pg.InfiniteLine(angle=90, movable=False, pen=pg.mkPen({'color': (0, 255, 0, 100), 'width': 4}))
+p_lidar.addItem(vLine, ignoreBounds=True)
+
 
 angles = np.arange(-90,90.5,0.5)
 # Realtime data plot. Each time this function is called, the data display is updated
@@ -80,9 +85,10 @@ def update_zed(image):
     QtGui.QApplication.processEvents()    # you MUST process the plot now
 
 
+people_angles = []
 ### MAIN PROGRAM #####    
 # this is a brutal infinite loop calling your realtime data plot
-for topic, msg, t in bag.read_messages():
+for topic, msg, t in bag.read_messages():    
     #print t, topic
     if topic == '/bottom_scan':
         ranges = np.array(msg.ranges)
@@ -94,6 +100,8 @@ for topic, msg, t in bag.read_messages():
         boxes = run_hog_on_img(image)
         if topic == '/ircam_data':
 			if not ircam_init: ircam_init = True
+			people_angles = [angle_from_box(image,box) for box in boxes]
+			if people_angles: vLine.setPos(people_angles[0])
 			boxes_tformed = get_boxes_zedframe(boxes)
 			img_people = plot_boxes(image, boxes, color='blue')
 			update_ir(img_people)
