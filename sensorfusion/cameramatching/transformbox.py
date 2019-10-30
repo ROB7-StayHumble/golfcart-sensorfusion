@@ -24,7 +24,7 @@ def get_boxes_zedframe(boxes,tform=tf):
 		w = xB - xA
 		h = yB - yA
 		box_corners = np.float32([[[xA,yA],[xB,yA],[xB,yB],[xA,yB]]])
-		print(box_corners)
+		#print(box_corners)
 		box_warped = cv2.perspectiveTransform(box_corners, tform)
 		if n == 0:
 			boxes_tformed = box_warped

@@ -3,16 +3,25 @@
 import cv2
 import numpy as np
 
-def plot_boxes(img, boxes):
+colors = {
+            'white':(255, 255, 255),
+            'black':(0,0,0),
+            'green':(0, 255, 0),
+            'blue':(0,255,255)
+}
+
+def plot_boxes(img, boxes, color='white'):
+	global colors
 	for (xA, yA, xB, yB) in boxes:	
-		cv2.rectangle(img, (xA, yA), (xB, yB), (0, 255, 0), 2)
+		cv2.rectangle(img, (xA, yA), (xB, yB), colors[color], 5)
 	return img
 
-def plot_polygons(img, polygons):
+def plot_polygons(img, polygons, color='white'):
+	global colors
 	for polygon in polygons:
-		print(polygon)
+		#print(polygon)
 		pts = np.int32(polygon).reshape((-1,1,2))
-		cv2.polylines(img,[pts],True,(0,255,255),5)
+		cv2.polylines(img,[pts],True,colors[color],5)
 	return img
 
 def downsample_image(img, desired_width):

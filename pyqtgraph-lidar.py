@@ -32,8 +32,12 @@ win = pg.GraphicsWindow(title="Golfcart sensors") # creates a window
 p_lidar = win.addPlot(title="LIDAR data",labels={'left':'Range (meters)','bottom':'Angle (degrees)'})  # creates empty space for the plot in the window
 #plot_view.addItem(p_lidar)
 curve_lidar = p_lidar.plot()                        # create an empty "plot" (a curve to plot)
-p_lidar.setYRange(0, 50, padding=0)
 p_lidar.showGrid(x=True,y=True)
+
+curve_lidar.getViewBox().invertX(True)
+curve_lidar.getViewBox().setLimits(yMin=0,yMax=60)
+curve_lidar.getViewBox().setAspectLocked(True)
+#p_lidar.setYRange(0, 50, padding=0)
 
 p_ir = win.addPlot(title = 'IR cam')
 imgItem_ir = pg.ImageItem()
@@ -81,7 +85,9 @@ def update_zed(image):
 for topic, msg, t in bag.read_messages():
     #print t, topic
     if topic == '/bottom_scan':
-	    update_lidar(msg.ranges)
+        ranges = np.array(msg.ranges)
+        ranges[ranges == 0] = 50
+        update_lidar(ranges)
     elif topic in [	'/ircam_data',
         '/zed_node/rgb/image_rect_color']:
         image = bridge.imgmsg_to_cv2(msg, "bgr8")
@@ -89,12 +95,13 @@ for topic, msg, t in bag.read_messages():
         if topic == '/ircam_data':
 			if not ircam_init: ircam_init = True
 			boxes_tformed = get_boxes_zedframe(boxes)
-			update_ir(image)
+			img_people = plot_boxes(image, boxes, color='blue')
+			update_ir(img_people)
         elif topic == '/zed_node/rgb/image_rect_color':
-            img_people = plot_boxes(image, boxes)
+            img_people = plot_boxes(image, boxes, color='green')
             if not zed_init: zed_init = True
             if ircam_init:
-                img_people = plot_polygons(image, boxes_tformed)
+                img_people = plot_polygons(image, boxes_tformed, color='blue')
             update_zed(img_people)
 
 ### END QtApp ####
