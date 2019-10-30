@@ -10,10 +10,23 @@ colors = {
             'blue':(0,255,255)
 }
 
+def angle_from_box(img,box):
+    h,w = img.shape[:2]
+    (xA, yA, xB, yB) = box
+    center_y, center_x = (h-(yA+(yB-yA)/2),(xA+(xB-xA)/2)-w/2)
+    if center_x == 0:
+        angle = 0
+    else: angle = np.round(np.rad2deg(np.arctan2(center_y,center_x))-90.0,decimals=1)
+    
+    return angle
+    
 def plot_boxes(img, boxes, color='white'):
 	global colors
-	for (xA, yA, xB, yB) in boxes:	
+	for box in boxes:	
+		(xA, yA, xB, yB) = box
+		angle = angle_from_box(img,box)
 		cv2.rectangle(img, (xA, yA), (xB, yB), colors[color], 5)
+		cv2.putText(img, str(angle), (xA, yA-10), cv2.FONT_HERSHEY_SIMPLEX, 0.9, colors[color], 2)
 	return img
 
 def plot_polygons(img, polygons, color='white'):
@@ -34,5 +47,7 @@ def downsample_image(img, desired_width):
 		       interpolation=cv2.INTER_LINEAR)
 
 	return img
+	
+
 
 	
