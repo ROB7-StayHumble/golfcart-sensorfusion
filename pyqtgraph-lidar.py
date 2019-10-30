@@ -32,13 +32,18 @@ p_lidar.setYRange(0, 50, padding=0)
 p_lidar.showGrid(x=True,y=True)
 
 p_ir = win.addPlot(title = 'IR cam')
-imgItem = pg.ImageItem()
+imgItem_ir = pg.ImageItem()
 curve_ir = p_ir.plot()
 curve_ir.getViewBox().invertY(True)
-p_ir.addItem(imgItem)
+p_ir.addItem(imgItem_ir)
+
+p_zed = win.addPlot(title = 'ZED cam')
+imgItem_zed = pg.ImageItem()
+curve_zed = p_zed.plot()
+curve_zed.getViewBox().invertY(True)
+p_zed.addItem(imgItem_zed)
 
 angles = np.arange(-90,90.5,0.5)
-
 # Realtime data plot. Each time this function is called, the data display is updated
 def update_lidar(lidar_ranges):
     global curve_lidar, angles    
@@ -47,9 +52,16 @@ def update_lidar(lidar_ranges):
 
 # Realtime data plot. Each time this function is called, the data display is updated
 def update_ir(image):
-    global imgItem, img_view    
-    imgItem.setImage(image,autoDownsample=True)          # set the curve with this data
+    global imgItem_ir    
+    imgItem_ir.setImage(image,autoDownsample=True)          # set the curve with this data
     QtGui.QApplication.processEvents()    # you MUST process the plot now
+
+# Realtime data plot. Each time this function is called, the data display is updated
+def update_zed(image):
+    global imgItem_zed    
+    imgItem_zed.setImage(image,autoDownsample=True)          # set the curve with this data
+    QtGui.QApplication.processEvents()    # you MUST process the plot now
+
 
 ### MAIN PROGRAM #####    
 # this is a brutal infinite loop calling your realtime data plot
@@ -61,7 +73,10 @@ for topic, msg, t in bag.read_messages():
 	    image = bridge.imgmsg_to_cv2(msg, "bgr8")
 	    image = np.swapaxes(image,0,1)
 	    update_ir(image)
-
+    elif topic == '/zed_node/rgb/image_rect_color':
+	    image = bridge.imgmsg_to_cv2(msg, "bgr8")
+	    image = np.swapaxes(image,0,1)
+	    update_zed(image)
 
 ### END QtApp ####
 pg.QtGui.QApplication.exec_() # you MUST put this at the end
