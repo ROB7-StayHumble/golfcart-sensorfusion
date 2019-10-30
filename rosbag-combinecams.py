@@ -13,11 +13,15 @@ from sensorfusion.cameramatching.transformbox import get_boxes_zedframe
 
 bridge = CvBridge()
 
-bag = rosbag.Bag('testing2.bag')
+bag = rosbag.Bag('2019-10-24-13-59-58.bag')
 
 #cv2.namedWindow('peoples',cv2.WINDOW_NORMAL)
 
 zed_init = False
+ircam_init = False
+
+cv2.namedWindow('peoples',cv2.WINDOW_NORMAL)
+cv2.resizeWindow('peoples', 400, 400)
 
 for topic, msg, t in bag.read_messages():	
 	if topic in [	'/ircam_data',
@@ -27,17 +31,21 @@ for topic, msg, t in bag.read_messages():
 		boxes = run_hog_on_img(image)
 
 		if topic == '/ircam_data':
+			if not ircam_init:
+				ircam_init = True
 			boxes_tformed = get_boxes_zedframe(boxes)
 		else:
-			if not zed_init: zed_init = True
 			image_zed = image
 			img_people = plot_boxes(image, boxes)
-			print(boxes_tformed)
-			img_people = plot_polygons(image, boxes_tformed)
+			if not zed_init:
+				zed_init = True
+			if ircam_init:
+				print(boxes_tformed)
+				img_people = plot_polygons(image, boxes_tformed)
 		if zed_init:
 			cv2.imshow('peoples',img_people)
 
-			key = cv2.waitKey(500) & 0xFF
+			key = cv2.waitKey(50) & 0xFF
 			if key == ord("q"):
 				break
 

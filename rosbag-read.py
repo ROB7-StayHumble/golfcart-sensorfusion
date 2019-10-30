@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 bridge = CvBridge()
 
-bag = rosbag.Bag('testing2.bag')
+bag = rosbag.Bag('2019-10-24-13-59-58.bag')
 
 angles = np.arange(-90,90.5,0.5)
 print(len(angles))
@@ -22,6 +22,9 @@ line,  = ax.plot(angles,np.zeros_like(angles))
 ax.invert_xaxis()
 fig.show()
 
+cv2.namedWindow('zed',cv2.WINDOW_NORMAL)
+cv2.namedWindow('ircam',cv2.WINDOW_NORMAL)
+
 for topic, msg, t in bag.read_messages():	
 	if topic in [	'/ircam_data',
 			'/zed_node/rgb/image_rect_color']:
@@ -30,13 +33,16 @@ for topic, msg, t in bag.read_messages():
 		if topic == '/ircam_data':
 			ircam_last = image
 			cv2.imshow('ircam',ircam_last)
+			cv2.resizeWindow('ircam', 300, 300)
 		elif topic == '/zed_node/rgb/image_rect_color':
 			zed = image
-			#cv2.imshow('zed',zed)
+			cv2.imshow('zed',zed)
+			cv2.resizeWindow('zed', 300, 300)
 			#cv2.imwrite('./zedcam'+str(t)+'.png',zed)
 		key = cv2.waitKey(0) & 0xFF
 		if key == ord("s"):
-			cv2.imwrite('./ircam'+str(t)+'.png',ircam_last)
+			try: cv2.imwrite('./ircam'+str(t)+'.png',ircam_last)
+			except: pass
 			try: cv2.imwrite('./zedcam'+str(t)+'.png',zed)
 			except: pass
 		elif key == ord("q"):
