@@ -27,9 +27,10 @@ W_IR = 800
 LIDAR_SETZEROTO = 60
 RUN_PERSON_DETECTION = False
 RUN_LANE_DETECTION = True
+RUN_HOUGH = False
+
 bridge = CvBridge()
 bag = rosbag.Bag('testing2.bag')
-
 
 ### START QtApp #####
 app = QtGui.QApplication([])            # you MUST do this once (initialize things)
@@ -157,10 +158,11 @@ def update_ir(image_people,image_lane):
         imgItem_ir.setImage(image_people, autoDownsample=True)  # set the curve with this data
     if RUN_LANE_DETECTION:
         image_ir_inv = np.swapaxes(image_lane, 0, 1)
-        edges, detected = draw_lanes(image_lane)
-        image_edges_inv = np.swapaxes(detected, 0, 1)
         imgItem_ir_lane.setImage(image_ir_inv, autoDownsample=True)  # set the curve with this data
-        imgItem_ir_edges.setImage(image_edges_inv, autoDownsample=True)  # set the curve with this data
+        if RUN_HOUGH:
+            detected = draw_lanes(image_lane)
+            image_edges_inv = np.swapaxes(detected, 0, 1)
+            imgItem_ir_edges.setImage(image_edges_inv, autoDownsample=True)  # set the curve with this data
     QtGui.QApplication.processEvents()    # you MUST process the plot now
 # Realtime data plot. Each time this function is called, the data display is updated
 def update_zed(image):
