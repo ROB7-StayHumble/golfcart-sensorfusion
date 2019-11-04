@@ -11,6 +11,7 @@ import cv2
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 import numpy as np
+from scipy.signal import butter, filtfilt
 
 from sensorfusion.detection_hog.hogdetector import *
 from sensorfusion.utils.img_utils import *
@@ -32,12 +33,14 @@ win = pg.GraphicsWindow(title="Golfcart sensors") # creates a window
 p_lidar = win.addPlot(title="LIDAR data",labels={'left':'Range (meters)','bottom':'Angle (degrees)'})  # creates empty space for the plot in the window
 #plot_view.addItem(p_lidar)
 curve_lidar = p_lidar.plot()                        # create an empty "plot" (a curve to plot)
+curve_lidar_smooth = p_lidar.plot()                        # create an empty "plot" (a curve to plot)
 p_lidar.showGrid(x=True,y=True)
 
 curve_lidar.getViewBox().invertX(True)
 curve_lidar.getViewBox().setLimits(yMin=0,yMax=80)
 curve_lidar.getViewBox().setAspectLocked(True)
 #p_lidar.setYRange(0, 50, padding=0)
+curve_lidar_smooth.setPen(pg.mkPen({'color': (100, 255, 255, 150), 'width': 4}))
 
 p_ir = win.addPlot(title = 'IR cam')
 imgItem_ir = pg.ImageItem()
@@ -59,14 +62,43 @@ p_zed.addItem(imgItem_zed)
 
 #cross hair
 vLine = pg.InfiniteLine(angle=90, movable=False, pen=pg.mkPen({'color': (0, 255, 0, 100), 'width': 4}))
-p_lidar.addItem(vLine, ignoreBounds=True)
+#p_lidar.addItem(vLine, ignoreBounds=True)
+
+def angle_of_max_range(data_x,data_y):
+    i_max = np.argmax(data_y)
+    angle_max = data_x[i_max]
+    return angle_max
+
+def butter_lowpass(cutoff, fs, order=5):
+    nyq = 0.5 * fs
+    normal_cutoff = cutoff / nyq
+    b, a = butter(order, normal_cutoff, btype='low', analog=False)
+    return b, a
+
+def butter_lowpass_filtfilt(data, cutoff, fs, order=5):
+    b, a = butter_lowpass(cutoff, fs, order=order)
+    y = filtfilt(b, a, data)
+    return y
+    
+def smooth_lidar_data(method,data_x,data_y):
+    if method == 'poly':
+        poly = np.polyfit(data_x,data_y,15)
+        poly_y = np.poly1d(poly)(data_x)
+        return poly_y
+    elif method == 'butter':
+        cutoff = 1500
+        fs = 50000
+        return butter_lowpass_filtfilt(data_y, cutoff, fs)
 
 
 angles = np.arange(-90,90.5,0.5)
 # Realtime data plot. Each time this function is called, the data display is updated
 def update_lidar(lidar_ranges):
     global curve_lidar, angles    
-    curve_lidar.setData(angles,lidar_ranges)          # set the curve with this data
+    smooth = smooth_lidar_data('butter',angles,lidar_ranges)
+    curve_lidar.setData(angles,lidar_ranges)
+    curve_lidar_smooth.setData(angles,smooth)
+    print(angle_of_max_range(angles,smooth))
     QtGui.QApplication.processEvents()    # you MUST process the plot now
 
 zed_init = False
