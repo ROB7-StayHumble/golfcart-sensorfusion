@@ -63,6 +63,7 @@ p_zed.addItem(imgItem_zed)
 #cross hair
 vLine = pg.InfiniteLine(angle=90, movable=False, pen=pg.mkPen({'color': (0, 255, 0, 100), 'width': 4}))
 #p_lidar.addItem(vLine, ignoreBounds=True)
+angleLines = []
 
 def angles_of_max_ranges(data_x,data_y):
     peaks, _ = find_peaks(data_y, height=30)
@@ -94,11 +95,17 @@ def smooth_lidar_data(method,data_x,data_y):
 angles = np.arange(-90,90.5,0.5)
 # Realtime data plot. Each time this function is called, the data display is updated
 def update_lidar(lidar_ranges):
-    global curve_lidar, angles    
+    global curve_lidar, angles, angleLines
+    for line in angleLines:
+        p_zed.removeItem(line)
+    angleLines = []    
     smooth = smooth_lidar_data('butter',angles,lidar_ranges)
     curve_lidar.setData(angles,lidar_ranges)
     curve_lidar_smooth.setData(angles,smooth)
-    print(angles_of_max_ranges(angles,smooth))
+    for angle in angles_of_max_ranges(angles,smooth):
+        angleLine = pg.InfiniteLine(pos=(640,720), angle=90-angle, movable=False, pen=pg.mkPen({'color': (0, 255, 0, 100), 'width': 4}))
+        angleLines.append(angleLine)
+        p_zed.addItem(angleLine, ignoreBounds=True)
     QtGui.QApplication.processEvents()    # you MUST process the plot now
 
 zed_init = False
