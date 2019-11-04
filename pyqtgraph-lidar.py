@@ -11,7 +11,7 @@ import cv2
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
 import numpy as np
-from scipy.signal import butter, filtfilt
+from scipy.signal import butter, filtfilt, find_peaks
 
 from sensorfusion.detection_hog.hogdetector import *
 from sensorfusion.utils.img_utils import *
@@ -64,11 +64,11 @@ p_zed.addItem(imgItem_zed)
 vLine = pg.InfiniteLine(angle=90, movable=False, pen=pg.mkPen({'color': (0, 255, 0, 100), 'width': 4}))
 #p_lidar.addItem(vLine, ignoreBounds=True)
 
-def angle_of_max_range(data_x,data_y):
-    i_max = np.argmax(data_y)
-    angle_max = data_x[i_max]
-    return angle_max
-
+def angles_of_max_ranges(data_x,data_y):
+    peaks, _ = find_peaks(data_y, height=30)
+    angles = [data_x[i_max] for i_max in peaks]
+    return angles
+    
 def butter_lowpass(cutoff, fs, order=5):
     nyq = 0.5 * fs
     normal_cutoff = cutoff / nyq
@@ -98,7 +98,7 @@ def update_lidar(lidar_ranges):
     smooth = smooth_lidar_data('butter',angles,lidar_ranges)
     curve_lidar.setData(angles,lidar_ranges)
     curve_lidar_smooth.setData(angles,smooth)
-    print(angle_of_max_range(angles,smooth))
+    print(angles_of_max_ranges(angles,smooth))
     QtGui.QApplication.processEvents()    # you MUST process the plot now
 
 zed_init = False
