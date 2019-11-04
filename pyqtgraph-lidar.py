@@ -7,6 +7,7 @@ import pyqtgraph as pg
 from random import randrange, uniform
 
 import rosbag
+import rospy
 import cv2
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge, CvBridgeError
@@ -16,6 +17,9 @@ from scipy.signal import butter, filtfilt, find_peaks
 from sensorfusion.detection_hog.hogdetector import *
 from sensorfusion.utils.img_utils import *
 from sensorfusion.cameramatching.transformbox import get_boxes_zedframe
+
+H_ZED = 720
+W_ZED = 1280
 
 bridge = CvBridge()
 bag = rosbag.Bag('testing2.bag')
@@ -55,6 +59,8 @@ p_zed = win.addPlot(title = 'ZED cam')
 imgItem_zed = pg.ImageItem()
 curve_zed = p_zed.plot()
 curve_zed.getViewBox().invertY(True)
+
+curve_zed.getViewBox().setLimits(xMin=0,xMax=W_ZED)
 curve_zed.getViewBox().setAspectLocked(True)
 p_zed.hideAxis('left')
 p_zed.hideAxis('bottom')
@@ -66,7 +72,10 @@ vLine = pg.InfiniteLine(angle=90, movable=False, pen=pg.mkPen({'color': (0, 255,
 angleLines = []
 
 def angles_of_max_ranges(data_x,data_y):
-    peaks, _ = find_peaks(data_y, height=30)
+    peaks, props = find_peaks(data_y, height=40)
+    if not len(peaks):
+        peaks, props = find_peaks(data_y, height=10)
+        peaks = [sorted(peaks,key=lambda x: data_x[x],reverse=True)[0]]
     angles = [data_x[i_max] for i_max in peaks]
     return angles
     
@@ -88,7 +97,7 @@ def smooth_lidar_data(method,data_x,data_y):
         return poly_y
     elif method == 'butter':
         cutoff = 1500
-        fs = 50000
+        fs = 100000
         return butter_lowpass_filtfilt(data_y, cutoff, fs)
 
 
@@ -103,7 +112,7 @@ def update_lidar(lidar_ranges):
     curve_lidar.setData(angles,lidar_ranges)
     curve_lidar_smooth.setData(angles,smooth)
     for angle in angles_of_max_ranges(angles,smooth):
-        angleLine = pg.InfiniteLine(pos=(640,720), angle=90-angle, movable=False, pen=pg.mkPen({'color': (0, 255, 0, 100), 'width': 4}))
+        angleLine = pg.InfiniteLine(pos=(W_ZED/2,H_ZED), angle=90-angle, movable=False, pen=pg.mkPen({'color': (0, 255, 0, 100), 'width': 4}))
         angleLines.append(angleLine)
         p_zed.addItem(angleLine, ignoreBounds=True)
     QtGui.QApplication.processEvents()    # you MUST process the plot now
@@ -123,33 +132,34 @@ def update_zed(image):
     imgItem_zed.setImage(image,autoDownsample=True)          # set the curve with this data
     QtGui.QApplication.processEvents()    # you MUST process the plot now
 
-
+n_frame = 0 # for counting frames
 people_angles = []
 ### MAIN PROGRAM #####    
 # this is a brutal infinite loop calling your realtime data plot
-for topic, msg, t in bag.read_messages():    
-    #print t, topic
-    if topic == '/bottom_scan':
-        ranges = np.array(msg.ranges)
-        ranges[ranges == 0] = 50
-        update_lidar(ranges)
-    elif topic in [	'/ircam_data',
-        '/zed_node/rgb/image_rect_color']:
-        image = bridge.imgmsg_to_cv2(msg, "bgr8")
-        boxes = run_hog_on_img(image)
-        if topic == '/ircam_data':
-			if not ircam_init: ircam_init = True
-			people_angles = [angle_from_box(image,box) for box in boxes]
-			if people_angles: vLine.setPos(people_angles[0])
-			boxes_tformed = get_boxes_zedframe(boxes)
-			img_people = plot_boxes(image, boxes, color='blue')
-			update_ir(img_people)
-        elif topic == '/zed_node/rgb/image_rect_color':
-            img_people = plot_boxes(image, boxes, color='green')
-            if not zed_init: zed_init = True
-            if ircam_init:
-                img_people = plot_polygons(image, boxes_tformed, color='blue')
-            update_zed(img_people)
+for topic, msg, t in bag.read_messages():
+    n_frame += 1 
+    if t > rospy.Time(1571746650.00000):
+        if topic == '/bottom_scan':
+            ranges = np.array(msg.ranges)
+            ranges[ranges == 0] = 50
+            update_lidar(ranges)
+        elif topic in [	'/ircam_data',
+            '/zed_node/rgb/image_rect_color']:
+            image = bridge.imgmsg_to_cv2(msg, "bgr8")
+            boxes = run_hog_on_img(image)
+            if topic == '/ircam_data':
+	            if not ircam_init: ircam_init = True
+	            people_angles = [angle_from_box(image,box) for box in boxes]
+	            if people_angles: vLine.setPos(people_angles[0])
+	            boxes_tformed = get_boxes_zedframe(boxes)
+	            img_people = plot_boxes(image, boxes, color='blue')
+	            update_ir(img_people)
+            elif topic == '/zed_node/rgb/image_rect_color':
+                img_people = plot_boxes(image, boxes, color='green')
+                if not zed_init: zed_init = True
+                if ircam_init:
+                    img_people = plot_polygons(image, boxes_tformed, color='blue')
+                update_zed(img_people)
 
 ### END QtApp ####
 pg.QtGui.QApplication.exec_() # you MUST put this at the end
