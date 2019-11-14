@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 
-import numpy as np
-import cv2
 from matplotlib import pyplot as plt
+
+import cv2
 
 folder = '1571825077852250111'
 
 ir = cv2.imread('ircam'+folder+'.png',0)
 zed = cv2.imread('zedcam'+folder+'.png',0)
+
+# code based on https://docs.opencv.org/3.4/dc/dc3/tutorial_py_matcher.html
 
 # Initiate SIFT detector
 orb = cv2.ORB_create()
@@ -46,5 +48,6 @@ for m,n in matches:
         good.append([m])
 # cv.drawMatchesKnn expects list of lists as matches.
 img3 = cv2.drawMatchesKnn(ir,kp1,zed,kp2,good,None,flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
+plt.imshow(img3)
 plt.savefig("feature_matching/feature_matching_sift.png", bbox_inches='tight', pad_inches=0)
-plt.imshow(img3),plt.show()
+plt.show()
