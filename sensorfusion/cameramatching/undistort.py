@@ -18,7 +18,8 @@ cv2.setTrackbarPos('p1','undistort',500)
 cv2.setTrackbarPos('p2','undistort',500)
 cv2.setTrackbarPos('k3','undistort',500)
 
-src    = cv2.imread("ircam.png")
+src    = cv2.imread("ircamlab.png")
+src = cv2.Canny(src,100,120)
 width  = src.shape[1]
 height = src.shape[0]
 
@@ -68,6 +69,7 @@ while(True):
     distCoeff[3,0] = p2
     distCoeff[4,0] = k3
 
+    print(distCoeff)
     dst = cv2.undistort(src,cam2,distCoeff)
 
     cv2.imshow('undistort',dst)
